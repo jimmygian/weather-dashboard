@@ -1,20 +1,83 @@
+
+/* Global */
 :root {
-    --secondary-btn-color: 179, 179, 179;
-    --primary-btn-color: 91, 146, 248;
+    --primary-btn-color: rgb(91, 146, 248);
+    --secondary-btn-color: rgb(179, 179, 179);
+    --header-gradient: rgb(117, 136, 224), rgb(64, 64, 183), rgb(0, 0, 114);
+}   
+
+body {
+    font-family: 'Noto Sans', sans-serif;
 }
 
+/* Header */
+.weather-header {
+    background: linear-gradient(to right, var(--header-gradient));
+}
+.weather-header h1 {
+    font-weight: 700;
+}
+
+/* Buttons */
 .btn-primary {
-    background-color: rgb(var(--primary-btn-color));
+    background-color: var(--primary-btn-color);
     border: 0px;
+    font-weight: 700;
 }
-
 .btn-secondary {
-    background-color: rgb(var(--secondary-btn-color));
+    background-color: var(--secondary-btn-color);
     color: black;
     border: 0px;
+    font-weight: 300;
 }
+
 
 .weather-search {
     border-radius: 5px !important;
     border-color: rgb(203, 203, 203);
+}
+
+
+/* Main Card */
+.main-card {
+    border: 1px solid rgb(156, 156, 156);
+    border-left: 2px solid rgb(110, 110, 110);
+    border-right: 2px solid rgb(110, 110, 110);
+    border-radius: 5px;
+}
+.main-card h2 {
+    font-weight: 700;
+}
+.main-card h2 span{
+    font-weight: 400;
+}
+.card-text {
+    font-weight: 500;
+}
+.card-text span{
+    font-weight: 400;
+}
+
+/* Cards - Secondary */
+.weather-data-secondary {
+    background-color: rgb(58, 58, 88);
+    color: white;
+    padding: 0px;
+    font-size: 0.8rem;
+    /* max-width: 20em; */
+    padding-bottom: 1.3em;
+    border-radius: 4px;
+}
+.weather-data-secondary p {
+    margin:0px;
+    padding:0.5em;
+    font-weight: 400;
+}
+.weather-data-secondary p span {
+    font-weight: 200;
+}
+
+.weather-data-secondary h5 {
+    font-size: 1.4em;
+    margin-bottom:0.3em !important;
 }

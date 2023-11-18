@@ -7,9 +7,16 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <!-- Reset Stylesheet -->
   <link rel="stylesheet" href="./assets/css/reset.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
   <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
   <!-- Stylesheet -->
   <link rel="stylesheet" href="./assets/css/style.css" />
   <!-- Title -->
@@ -19,7 +26,7 @@
 
 <body>
 
-  <header class="container-fluid text-center text-white bg-dark p-2 weather-header">
+  <header class="container-fluid text-center text-white p-2 weather-header">
     <h1>Weather Dashboard</h1>
   </header>
 
@@ -48,7 +55,8 @@
                 aria-labelledby="form-heading" aria-controls="today forecast" />
               <!-- This div is part of the input group and is appended to it. It contains elements that will be displayed on the right side of the input field-->
               <div class="input-group-append w-100 ">
-                <button class="btn btn-primary search-button w-100 mt-3" type="submit" id="search-button" aria-label="submit search">
+                <button class="btn btn-primary search-button w-100 mt-3" type="submit" id="search-button"
+                  aria-label="submit search">
                   Search
                 </button>
                 <!-- Horizontal Rule -->
@@ -61,13 +69,16 @@
 
         <!-- Prepends history buttons here -->
         <div class="list-group" id="history">
-          <button class="btn btn-secondary search-button w-100 mt-3 py-1" type="submit" id="search-button" aria-label="submit search">
+          <button class="btn btn-secondary search-button w-100 mt-3 py-1" type="submit" id="search-button"
+            aria-label="submit search">
             Paris
           </button>
-          <button class="btn btn-secondary search-button w-100 mt-3 py-1" type="submit" id="search-button" aria-label="submit search">
+          <button class="btn btn-secondary search-button w-100 mt-3 py-1" type="submit"
+            aria-label="submit search">
             Edinburgh
           </button>
-          <button class="btn btn-secondary search-button w-100 mt-3 py-1" type="submit" id="search-button" aria-label="submit search">
+          <button class="btn btn-secondary search-button w-100 mt-3 py-1" type="submit"
+            aria-label="submit search">
             Berlin
           </button>
 
@@ -78,13 +89,75 @@
 
       <!-- Right Column -->
       <div class="col-lg-9 pb-3">
-        <section id="today" class="mt-3" role="region" aria-live="polite"></section>
-        <section id="forecast" class="row mt-3" role="region" aria-live="polite"></section>
+        <!-- Section 1 - Current Weather -->
+        <section id="today" class="card mt-3 p-2 main-card" role="region" aria-live="polite">
+          <h2 class="card-title pb-3 city">London <span class="date date-current">(14/9/2022)</span> <span class="weather-icon"></span></h2>
+          <div class="weather-data-container weather-data-main">
+            <p class="card-text weather-data-item p-1 temp">Temp: <span class="temp-data">13.35</span><span class="temp-symbol"> C</span></p>
+            <p class="card-text weather-data-item p-1 wind">Wind: <span class="wind-data">1.25</span><span class="wind-symbol"> KPH</span></p>
+            <p class="card-text weather-data-item p-1 humidity"> Humidity: <span class="temp-data">84</span><span class="humidity-symbol">%</span></p>
+          </div>
+
+        <!-- Section 2 - 5-day Forecast -->
+        </section>
+
+        <section id="forecast" class="row mt-3 5-day-forecast-div" role="region" aria-live="polite">
+          
+          <h4 class="pt-4">5-Day Forecast:</h4>
+
+          <!-- 5-day forecast container -->
+          <div class="container-fluid">
+            <div class="row g-2">
+              <!-- weather-data-secondary item -->
+              <div class="col-12 col-md m-md-2  card weather-data-container weather-data-secondary">
+                <h5 class="date p-2">15/9/2022</h5>
+                <p class="weather-icon">ICON</p>
+                <p class="card-text weather-data-item temp">Temp: <span class="temp-data">13.35</span><span> C</span></p>
+                <p class="card-text weather-data-item wind">Wind: <span class="wind-data">1.25</span><span> KPH</span></p>
+                <p class="card-text weather-data-item humidity"> Humidity: <span class="temp-data">84</span><span> %</span></p>
+              </div>
+              <div class="col-12 col-md m-md-2  card weather-data-container weather-data-secondary">
+                <h5 class="date p-2">15/9/2022</h5>
+                <p class="weather-icon">ICON</p>
+                <p class="card-text weather-data-item temp">Temp: <span class="temp-data">13.35</span><span> C</span></p>
+                <p class="card-text weather-data-item wind">Wind: <span class="wind-data">1.25</span><span> KPH</span></p>
+                <p class="card-text weather-data-item humidity"> Humidity: <span class="temp-data">84</span><span> %</span></p>
+              </div>
+              <div class="col-12 col-md m-md-2  card weather-data-container weather-data-secondary">
+                <h5 class="date p-2">15/9/2022</h5>
+                <p class="weather-icon">ICON</p>
+                <p class="card-text weather-data-item temp">Temp: <span class="temp-data">13.35</span><span> C</span></p>
+                <p class="card-text weather-data-item wind">Wind: <span class="wind-data">1.25</span><span> KPH</span></p>
+                <p class="card-text weather-data-item humidity"> Humidity: <span class="temp-data">84</span><span> %</span></p>
+              </div>
+              <div class="col-12 col-md m-md-2  card weather-data-container weather-data-secondary">
+                <h5 class="date p-2">15/9/2022</h5>
+                <p class="weather-icon">ICON</p>
+                <p class="card-text weather-data-item temp">Temp: <span class="temp-data">13.35</span><span> C</span></p>
+                <p class="card-text weather-data-item wind">Wind: <span class="wind-data">1.25</span><span> KPH</span></p>
+                <p class="card-text weather-data-item humidity"> Humidity: <span class="temp-data">84</span><span> %</span></p>
+              </div>
+              <div class="col-12 col-md m-md-2  card weather-data-container weather-data-secondary">
+                <h5 class="date p-2">15/9/2022</h5>
+                <p class="weather-icon">ICON</p>
+                <p class="card-text weather-data-item temp">Temp: <span class="temp-data">13.35</span><span> C</span></p>
+                <p class="card-text weather-data-item wind">Wind: <span class="wind-data">1.25</span><span> KPH</span></p>
+                <p class="card-text weather-data-item humidity"> Humidity: <span class="temp-data">84</span><span> %</span></p>
+              </div>
+            </div>
+          </div>
+
+        </section>
+        
       </div>
 
     </div>
 
   </div>
+
+
+  
+
 
   <!-- Day.js -->
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
