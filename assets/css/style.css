@@ -6,6 +6,12 @@
     --card-color: rgb(58, 58, 88);
     --header-gradient: rgb(113, 122, 164), rgb(86, 86, 138), rgb(41, 41, 83);
     --cards-gradient: rgb(58, 58, 88), rgb(70, 70, 106), rgb(75, 75, 111);
+
+    /* Main Card background styles (based on current weather) */
+    --cloudy: linear-gradient(180deg, rgba(114, 114, 133, 0.724) 10%, rgba(255, 255, 255, 0.689) 50%);
+    --sunny: linear-gradient(180deg, rgba(237, 223, 147, 0.724) 10%, rgba(255, 255, 255, 0.689) 50%);
+    --hot: linear-gradient(180deg, rgba(230, 164, 77, 0.724) 10%, rgba(255, 255, 255, 0.689) 50%);
+    --cold: linear-gradient(180deg, rgba(147, 220, 237, 0.724) 10%, rgba(255, 255, 255, 0.689) 50%);
 }   
 
 body {
@@ -47,6 +53,7 @@ body {
     border-left: 2px solid rgb(110, 110, 110);
     border-right: 2px solid rgb(110, 110, 110);
     border-radius: 5px;
+    /* background: var(--cold); */
 }
 .main-card h2 {
     font-weight: 700;
