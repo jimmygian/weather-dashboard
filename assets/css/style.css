@@ -3,11 +3,14 @@
 :root {
     --primary-btn-color: rgb(91, 146, 248);
     --secondary-btn-color: rgb(179, 179, 179);
-    --header-gradient: rgb(117, 136, 224), rgb(64, 64, 183), rgb(0, 0, 114);
+    --card-color: rgb(58, 58, 88);
+    --header-gradient: rgb(113, 122, 164), rgb(86, 86, 138), rgb(41, 41, 83);
+    --cards-gradient: rgb(58, 58, 88), rgb(70, 70, 106), rgb(75, 75, 111);
 }   
 
 body {
     font-family: 'Noto Sans', sans-serif;
+    /* background-color: rgb(42, 42, 59); */
 }
 
 /* Header */
@@ -60,7 +63,8 @@ body {
 
 /* Cards - Secondary */
 .weather-data-secondary {
-    background-color: rgb(58, 58, 88);
+    /* background-color: var(--card-color); */
+    background: linear-gradient(110deg, var(--cards-gradient));
     color: white;
     padding: 0px;
     font-size: 0.8rem;
