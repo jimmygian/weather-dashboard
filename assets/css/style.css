@@ -1,0 +1,20 @@
+:root {
+    --secondary-btn-color: 179, 179, 179;
+    --primary-btn-color: 91, 146, 248;
+}
+
+.btn-primary {
+    background-color: rgb(var(--primary-btn-color));
+    border: 0px;
+}
+
+.btn-secondary {
+    background-color: rgb(var(--secondary-btn-color));
+    color: black;
+    border: 0px;
+}
+
+.weather-search {
+    border-radius: 5px !important;
+    border-color: rgb(203, 203, 203);
+}
