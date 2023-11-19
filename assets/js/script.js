@@ -13,6 +13,15 @@ const weatherApiKey = OPEN_WEATHER_MAP_API;
 const LIMIT = 1;
 const UNITS = 'metric';
 
+const WEATHER_ICONS = {
+    Thunderstorm: '11d', 
+    Drizzle: '09d', 
+    Rain: '09d', 
+    Snow: '13d', 
+    Clear: '01d', 
+    Clouds: '03d',
+};
+
 // ELEMENT SELECTORS
 const searchForm = document.querySelector('#search-form');
 const searchInput = document.querySelector('#search-input');
@@ -37,8 +46,8 @@ searchForm.addEventListener('submit', function (event) {
 
     getLatLon(city)
         .then(latLon => getForecast(latLon))
-        .then(data => { 
-            console.log(data); 
+        .then(data => {
+            console.log(data);
 
             for (item of data) {
                 createForecastDiv(item)
@@ -72,7 +81,6 @@ function getLatLon(city) {
         .then(function (data) {
             console.log(data[0]['lat']);
             console.log(data[0]['lon']);
-            console.log(data);
             return [data[0]['lat'], data[0]['lon']];
         })
         .catch(function (error) {
@@ -104,7 +112,7 @@ function getForecast(latLon) {
 
 
 function processForecastData(data) {
-
+    console.log(data)
     // MAIN FUNCTION //
 
     // Initializes savedData array and Index
@@ -114,6 +122,7 @@ function processForecastData(data) {
     // Initializes variables that will calculate the averages
     let tempTotal = 0, humTotal = 0, windTotal = 0, hourCount = 0;
     let savedDay = '';
+    let weather = {};
 
     // Loops through each item of the data.list
     for (const item of data.list) {
@@ -130,15 +139,28 @@ function processForecastData(data) {
                 humTotal += item.main.humidity;
                 windTotal += item.wind.speed;
                 hourCount++;
+
+                // Check if the key exists
+                if (weather.hasOwnProperty(item.weather[0].main)) {
+                    // Key exists, increment its value
+                    weather[item.weather[0].main] += 1;
+                } else {
+                    // Key doesn't exist, initialize it with a value of 1
+                    weather[item.weather[0].main] = 1;
+                }
+
             } else {
                 updatesSavedData();
+                console.log(weather)
                 tempTotal = 0;
                 humTotal = 0;
                 windTotal = 0;
                 hourCount = 0;
+                weather = {};
                 savedDay = parsedDate.format('dddd');
                 savedDataIndex++;
                 handleNewDay(parsedDate);
+
             }
         }
     }
@@ -169,6 +191,26 @@ function processForecastData(data) {
         savedData[savedDataIndex]['avgTemp'] = calculateAverage(tempTotal, hourCount);
         savedData[savedDataIndex]['avgHum'] = Math.round(calculateAverage(humTotal, hourCount));
         savedData[savedDataIndex]['avgWind'] = calculateAverage(windTotal, hourCount);
+        savedData[savedDataIndex]['icon'] = calculateIcon(weather);
+    }
+
+
+    // 4. Calculates which icon to use
+    function calculateIcon(weather) {
+        let maxKey = null;
+        let maxValue = -Infinity;
+
+        // Iterate through the object
+        for (let key in weather) {
+            if (weather.hasOwnProperty(key)) {
+                // Check if the current value is greater than the maximum value
+                if (weather[key] > maxValue) {
+                    maxValue = weather[key];
+                    maxKey = key;
+                }
+            }
+        }
+        return WEATHER_ICONS[maxKey];
     }
 }
 
@@ -184,15 +226,16 @@ function createForecastDiv(forecast) {
     dateH5.classList.add('date', 'p-2');
     dateH5.innerText = forecast.date;
 
-    const iconP = document.createElement('p');
-    iconP.classList.add('weather-icon');
-    iconP.innerText = "ICON";
+    const iconImg = document.createElement('img');
+    iconImg.classList.add('weather-icon');
+    iconImg.setAttribute('src', `https://openweathermap.org/img/wn/${forecast.icon}@2x.png`);
+    iconImg.setAttribute('width', '40');
 
     const tempP = createWeatherDataItem('Temp', forecast.avgTemp, 'C');
     const windP = createWeatherDataItem('Wind', forecast.avgWind, 'KPH');
     const humP = createWeatherDataItem('Humidity', forecast.avgHum, '%');
 
-    childDiv.append(dateH5, iconP, tempP, windP, humP);
+    childDiv.append(dateH5, iconImg, tempP, windP, humP);
     forecastDiv.append(childDiv);
 }
 
@@ -213,6 +256,5 @@ function createWeatherDataItem(label, value, unit) {
     unitSpan.innerText = ` ${unit}`;
 
     itemP.append(labelSpan, valueSpan, unitSpan);
-    console.log("itemP: ", itemP);
     return itemP;
 }
