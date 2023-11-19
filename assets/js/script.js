@@ -3,15 +3,12 @@ dayjs.extend(window.dayjs_plugin_calendar);
 dayjs.extend(window.dayjs_plugin_advancedFormat);
 
 
-// const CURRENT_DATE = dayjs('2023-11-12 13:30:00'); // For testing
-const CURRENT_DATE = dayjs();
-const dateFormated = `${CURRENT_DATE.format('YYMMDD')}`
-
-
-// Add your OPEN WEATHER API KEY here
+// GLOBAL CONSTS
 const weatherApiKey = OPEN_WEATHER_MAP_API;
 const LIMIT = 1;
 const UNITS = 'metric';
+const CURRENT_DATE = dayjs();
+const dateFormated = `${CURRENT_DATE.format('YYMMDD')}`
 
 const WEATHER_ICONS = {
     Thunderstorm: '11d', 
@@ -27,38 +24,60 @@ const searchForm = document.querySelector('#search-form');
 const searchInput = document.querySelector('#search-input');
 const searchSubmit = document.querySelector('#search-button');
 const forecastDiv = document.querySelector(".forecast-div-parent");
+const historyDiv = document.querySelector("#history");
 
 
-// Store City
+
+// EVENT LISTENERS
 searchForm.addEventListener('submit', function (event) {
+    
     event.preventDefault();
 
+    // Stores user selection
     let city = searchInput.value.trim();
     if (city === '') {
         return;
     }
+    // Clears user input after storing value
     searchInput.value = '';
 
-    // Clear forecastDiv
+    // Clears forecastDiv
     while (forecastDiv.firstChild) {
         forecastDiv.removeChild(forecastDiv.firstChild);
     }
 
+    // CREATES BUTTONS
+
+    /*
+          <button class="btn btn-secondary search-button w-100 mt-3 py-1" type="submit" id="search-button"
+            aria-label="submit search">
+            Paris
+          </button>
+
+    */
+   const newBtn = document.createElement('button');
+   newBtn.classList.add('btn', 'btn-secondary', 'search-button', 'w-100', 'mt-3', 'py-1');
+   newBtn.setAttribute('type', 'submit');
+   newBtn.setAttribute('aria-label', 'submit old search');
+   newBtn.innerText = city;
+   historyDiv.append(newBtn)
+
+   if (historyDiv.childElementCount > 5) {
+    historyDiv.removeChild(historyDiv.firstChild);
+   }
+
+    // CREATES 5-DAY FORECAST CARDS
     getLatLon(city)
         .then(latLon => getForecast(latLon))
         .then(data => {
             console.log(data);
 
             for (item of data) {
-                createForecastDiv(item)
+                createForecastCard(item)
             }
         })
 
-
-
-
-
-    // Create Button
+    // CREATES MAIN CARD
 })
 
 // Gets Latitude and Longitude of city
@@ -216,7 +235,10 @@ function processForecastData(data) {
 
 
 
-function createForecastDiv(forecast) {
+// CREATING ELEMENTS //
+
+// 1. Forecast Card
+function createForecastCard(forecast) {
     const forecastDiv = document.querySelector(".forecast-div-parent");
 
     const childDiv = document.createElement('div');
@@ -237,24 +259,25 @@ function createForecastDiv(forecast) {
 
     childDiv.append(dateH5, iconImg, tempP, windP, humP);
     forecastDiv.append(childDiv);
-}
 
-// Helper function to create weather data item with <span> elements
-function createWeatherDataItem(label, value, unit) {
-    const itemP = document.createElement('p');
-    itemP.classList.add('card-text', 'weather-data-item', label.toLowerCase());
 
-    const labelSpan = document.createElement('span');
-    labelSpan.classList.add('label-name');
-    labelSpan.innerText = `${label}: `;
+    // Helper function to create weather data item with <span> elements
+    function createWeatherDataItem(label, value, unit) {
+        const itemP = document.createElement('p');
+        itemP.classList.add('card-text', 'weather-data-item', label.toLowerCase());
 
-    const valueSpan = document.createElement('span');
-    valueSpan.classList.add(`${label.toLowerCase()}-data`);
-    valueSpan.innerText = value;
+        const labelSpan = document.createElement('span');
+        labelSpan.classList.add('label-name');
+        labelSpan.innerText = `${label}: `;
 
-    const unitSpan = document.createElement('span');
-    unitSpan.innerText = ` ${unit}`;
+        const valueSpan = document.createElement('span');
+        valueSpan.classList.add(`${label.toLowerCase()}-data`);
+        valueSpan.innerText = value;
 
-    itemP.append(labelSpan, valueSpan, unitSpan);
-    return itemP;
+        const unitSpan = document.createElement('span');
+        unitSpan.innerText = ` ${unit}`;
+
+        itemP.append(labelSpan, valueSpan, unitSpan);
+        return itemP;
+    }
 }
