@@ -93,101 +93,70 @@ function getForecast(latLon) {
 
 
 function processForecastData(data) {
-    console.log("====================");
-
-    // Initialize variables for calculation
-
-    let savedData = []  // Array to be returned
-    let arrCount = 0;   // Array elements count
-
     
-    // These variables change per day
+    // MAIN FUNCTION //
+
+    // Initializes savedData array and Index
+    let savedData = [];
+    let savedDataIndex = 0;
+
+    // Initializes variables that will calculate the averages
+    let tempTotal = 0, humTotal = 0, windTotal = 0, hourCount = 0;
     let savedDay = '';
-    let tempTotal = 0, humTotal = 0, windTotal = 0;
-    let divident = 0;
 
-    for (let i = 0; i < data.list.length; i++) {
+    // Loops through each item of the data.list
+    for (const item of data.list) {
+        const parsedDate = dayjs(item.dt_txt, { format: "YYYY-MM-DD HH:mm:ss" });
 
-        // Parse Date and Time of list
-        const dateString = data.list[i].dt_txt;
-        const parsedDate = dayjs(dateString, { format: "YYYY-MM-DD HH:mm:ss" });
-
-        // If day is today, skip
         if (CURRENT_DATE.day() !== parsedDate.day()) {
+            if (savedDay === '') {
+                savedDay = parsedDate.format('dddd');
+                handleNewDay(parsedDate);
+            }
 
             if (savedDay === parsedDate.format('dddd')) {
-                //  Store totals
-                tempTotal += data.list[i].main.temp;
-                humTotal += data.list[i].main.humidity;
-                windTotal += data.list[i].wind.speed;
-
-                console.log(data.list[i].dt_txt);
-                // Update Count that will be used to create averages
-                divident++;
-
-                console.log("divident:", divident);
-                console.log("temp:", data.list[i].main.temp);
-                console.log("temptTotal:", tempTotal);
-                console.log("humTotal:", humTotal);
-                console.log("windTotal:", windTotal);
-
+                tempTotal += item.main.temp;
+                humTotal += item.main.humidity;
+                windTotal += item.wind.speed;
+                hourCount++;
             } else {
-                if (savedDay === '') {
-
-                    // Go one i back
-                    i--;
-
-                    //  Update savedDay
-                    savedDay = parsedDate.format('dddd');
-
-                    // Push new element to array
-                    savedData.push(
-                        {
-                            day: parsedDate.format('dddd'),
-                            date: parsedDate.format('DD/MM/YYYY'),
-                        }
-                    )
-
-                } else {
-
-                    // Go one i back
-                    i--;
-
-                    // Push data to current array's object
-                    savedData[arrCount]['temp'] = Number((tempTotal / divident).toFixed(2));
-                    savedData[arrCount]['humidity'] = Math.round((humTotal / divident).toFixed(2));
-                    savedData[arrCount]['wind'] = Number((windTotal / divident).toFixed(2));
-
-                    // Initialize totals
-                    tempTotal = 0;
-                    humTotal = 0;
-                    windTotal = 0;
-                    divident = 0;
-
-                    //  Update savedDay
-                    savedDay = parsedDate.format('dddd');
-
-                    // Update array Count
-                    arrCount++;
-
-                    // Push new {}
-                    if (arrCount < 5) {
-                        savedData.push(
-                            {
-                                day: parsedDate.format('dddd'),
-                                date: parsedDate.format('DD/MM/YYYY'),
-                            }
-                        )
-                        console.log("------------");
-                    }
-                }
+                updatesSavedData();
+                tempTotal = 0;
+                humTotal = 0;
+                windTotal = 0;
+                hourCount = 0;
+                savedDay = parsedDate.format('dddd');
+                savedDataIndex++;
+                handleNewDay(parsedDate);
             }
         }
     }
-    // Push data to current array's object
-    savedData[arrCount]['temp'] = Number((tempTotal / divident).toFixed(2));
-    savedData[arrCount]['humidity'] = Math.round((humTotal / divident).toFixed(2));
-    savedData[arrCount]['wind'] = Number((windTotal / divident).toFixed(2));
-
+    updatesSavedData();
     return savedData;
+
+
+
+    // NESTED FUNCTIONS //
+
+    // 1: Pushes a new object instance to savedData array
+    function handleNewDay(parsedDate) {
+        savedData.push(
+            {
+                day: parsedDate.format('dddd'),
+                date: parsedDate.format('DD/MM/YYYY')
+            }
+        );
+    }
+
+    // 2: Calculates Averages
+    function calculateAverage(total, div) {
+        return Number((total / div).toFixed(2));
+    }
+
+    // 3: Updates savedData array
+    function updatesSavedData() {
+        savedData[savedDataIndex]['avgTemp'] = calculateAverage(tempTotal, hourCount);
+        savedData[savedDataIndex]['avgHum'] = Math.round(calculateAverage(humTotal, hourCount));
+        savedData[savedDataIndex]['avgWind'] = calculateAverage(windTotal, hourCount);
+    }
 }
