@@ -9,13 +9,15 @@ const LIMIT = 1;
 const UNITS = 'metric';
 const CURRENT_DATE = dayjs();
 const dateFormated = `${CURRENT_DATE.format('YYMMDD')}`
+let recentSearches = JSON.parse((localStorage.getItem('recentSearches'))) || [];
+console.log("recent searches: ", recentSearches);
 
 const WEATHER_ICONS = {
-    Thunderstorm: '11d', 
-    Drizzle: '09d', 
-    Rain: '09d', 
-    Snow: '13d', 
-    Clear: '01d', 
+    Thunderstorm: '11d',
+    Drizzle: '09d',
+    Rain: '09d',
+    Snow: '13d',
+    Clear: '01d',
     Clouds: '03d',
 };
 
@@ -27,10 +29,16 @@ const forecastDiv = document.querySelector(".forecast-div-parent");
 const historyDiv = document.querySelector("#history");
 
 
+for (city of recentSearches) {
+    createSearchHistoryBtn(city);
+}
+
+
+
 
 // EVENT LISTENERS
 searchForm.addEventListener('submit', function (event) {
-    
+
     event.preventDefault();
 
     // Stores user selection
@@ -55,16 +63,13 @@ searchForm.addEventListener('submit', function (event) {
           </button>
 
     */
-   const newBtn = document.createElement('button');
-   newBtn.classList.add('btn', 'btn-secondary', 'search-button', 'w-100', 'mt-3', 'py-1');
-   newBtn.setAttribute('type', 'submit');
-   newBtn.setAttribute('aria-label', 'submit old search');
-   newBtn.innerText = city;
-   historyDiv.append(newBtn)
+   
+   console.log(cityExists(city));
 
-   if (historyDiv.childElementCount > 5) {
-    historyDiv.removeChild(historyDiv.firstChild);
-   }
+    if (!cityExists(city)) {
+        createSearchHistoryBtn(city);
+    }
+
 
     // CREATES 5-DAY FORECAST CARDS
     getLatLon(city)
@@ -279,5 +284,44 @@ function createForecastCard(forecast) {
 
         itemP.append(labelSpan, valueSpan, unitSpan);
         return itemP;
+    }
+}
+
+
+function createSearchHistoryBtn(city) {
+    // Create Button and set its attributes
+    const newBtn = document.createElement('button');
+    newBtn.classList.add('btn', 'btn-secondary', 'btn-history', 'search-button', 'w-100', 'mt-3', 'py-1');
+    newBtn.setAttribute('type', 'submit');
+    newBtn.setAttribute('aria-label', 'submit old search');
+    newBtn.innerText = city;
+    historyDiv.append(newBtn)
+
+    // Remove a child if child count is more than 5
+    if (historyDiv.childElementCount > 5) {
+        historyDiv.removeChild(historyDiv.firstChild);
+    }
+}
+
+
+
+function cityExists(city) {
+
+    // Check if the parent div includes a child button with the text of at least 1 of the array elements
+    var cityExists = Array.from(historyDiv.children).some(function (child) {
+        return child.classList.contains('btn-history') && recentSearches.includes(child.textContent.trim());
+    });
+
+    if (cityExists) {
+        return true;
+    } else {
+        console.log('No button with the same text found');
+
+        // Push new city to local storage key 'recentSearches'
+        if (!recentSearches.includes(city)) {
+            recentSearches.push(city);
+            localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+        }
+        return false;
     }
 }
