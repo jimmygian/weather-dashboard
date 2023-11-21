@@ -10,7 +10,7 @@ To explore the Weather Dashboard and check real-time weather information for you
 
 - Clone this repository and update the API key on script.js. To get an open weather API key visit this link.
 
-- Access the deployed application [here](https://jimmygian.github.io/quiz-game/weather-dashboard). Note that the search won't run without the API key.
+- Access the deployed application [here](https://jimmygian.github.io/weather-dashboard/). Note that the search won't run without the API key.
 
 
 ## Motivations
@@ -60,7 +60,7 @@ This project is licensed under the MIT License, allowing you the freedom to use 
 
 ## Links
 
-- Deployed Application: [Weather Dashboard](https://jimmygian.github.io/quiz-game/weather-dashboard)
+- Deployed Application: [Weather Dashboard](https://jimmygian.github.io/weather-dashboard/)
 - GitHub Repository: [Weather Dashboard Repository](https://github.com/jimmygian/weather-dashboard/)
 
 
