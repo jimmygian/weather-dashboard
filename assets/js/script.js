@@ -32,7 +32,7 @@ const weatherSection = document.querySelector('.weather-info-section');
 // LOCAL STORAGE 
 const recentSearches = JSON.parse((localStorage.getItem('recentSearches'))) || [];
 let cities = recentSearches;
-console.log("RecentSearches key:", recentSearches);
+
 // Updates History Buttons based on stored cities
 for (city of recentSearches) {
     createSearchHistoryBtn(city);
@@ -379,8 +379,8 @@ function createSearchHistoryBtn(city) {
 
     // Remove a child if child count is more than 5
     if (historyDiv.childElementCount >= HISTORY_BTN_COUNT) {
+        removeFromArray(cities, historyDiv.firstChild.innerText);
         historyDiv.removeChild(historyDiv.firstChild);
-        removeFromArray(cities, city);
     }
 }
 
@@ -406,7 +406,10 @@ function updateLocalStorage(city) {
 }
 
 function removeFromArray(array, elementToRemove) {
+    // Returns index number of specified element, or -1 if index was not found
     var index = array.indexOf(elementToRemove);
+
+    //  If element was actually found in array
     if (index !== -1) {
         array.splice(index, 1);
     }
@@ -425,9 +428,6 @@ function updateCurrentWeather(latLon, city) {
 
             const weatherDataDiv = document.createElement('div');
             weatherDataDiv.classList.add('weather-data-container');
-
-            console.log("Current Weather Data:");
-            console.log(data);
 
             const h2El = document.createElement('h2');
             h2El.classList.add('card-title', 'pb-3', 'city');
