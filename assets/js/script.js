@@ -5,12 +5,15 @@ dayjs.extend(window.dayjs_plugin_advancedFormat);
 
 // GLOBAL CONSTS
 const weatherApiKey = OPEN_WEATHER_MAP_API;
+const HISTORY_BTN_COUNT = 5;
 const LIMIT = 1;
 const UNITS = 'metric';
 const CURRENT_DATE = dayjs();
-const dateFormated = `${CURRENT_DATE.format('YYMMDD')}`
-let recentSearches = JSON.parse((localStorage.getItem('recentSearches'))) || [];
-console.log("recent searches: ", recentSearches);
+const dateFormated = `${CURRENT_DATE.format('DD/MM/YYYY')}`
+console.log(dateFormated)
+const recentSearches = JSON.parse((localStorage.getItem('recentSearches'))) || [];
+let cities = recentSearches;
+console.log("RecentSearches key:", recentSearches);
 
 const WEATHER_ICONS = {
     Thunderstorm: '11d',
@@ -29,11 +32,10 @@ const forecastDiv = document.querySelector(".forecast-div-parent");
 const historyDiv = document.querySelector("#history");
 
 
+// Updates History Buttons based on stored cities
 for (city of recentSearches) {
     createSearchHistoryBtn(city);
 }
-
-
 
 
 // EVENT LISTENERS
@@ -46,7 +48,11 @@ searchForm.addEventListener('submit', function (event) {
     if (city === '') {
         return;
     }
+
+    console.log('User typed:', city);
+
     // Clears user input after storing value
+    searchInput.setAttribute('placeholder', "City name..");
     searchInput.value = '';
 
     // Clears forecastDiv
@@ -63,26 +69,32 @@ searchForm.addEventListener('submit', function (event) {
           </button>
 
     */
-   
-   console.log(cityExists(city));
-
-    if (!cityExists(city)) {
-        createSearchHistoryBtn(city);
-    }
-
 
     // CREATES 5-DAY FORECAST CARDS
     getLatLon(city)
         .then(latLon => getForecast(latLon))
+        .catch(error => { console.error(error) })
         .then(data => {
-            console.log(data);
 
             for (item of data) {
-                createForecastCard(item)
+                createForecastCard(item);
             }
-        })
+            updateLocalStorage(city);
+            if (!cityExists(city)) {
+                createSearchHistoryBtn(city);
+            }
+        }).catch(error => {
+            console.error(error);
+            searchInput.value = '';
+        });
 
     // CREATES MAIN CARD
+    getLatLon(city)
+        .then(latLon => updateCurrentWeather(latLon, city))
+        .catch(error => {
+            console.error(error)
+        });
+
 })
 
 // Gets Latitude and Longitude of city
@@ -95,21 +107,19 @@ function getLatLon(city) {
     // Return a promise using fetch
     return fetch(locationURL)
         .then(function (response) {
+
             if (response.ok) {
                 return response.json();
             } else {
                 // Throw error to stop the process and go to .catch
-                throw new Error("Response Unsuccesful");
+                throw new Error("Lat Lon Response Unsuccesful");
             }
         })
         .then(function (data) {
-            console.log(data[0]['lat']);
-            console.log(data[0]['lon']);
             return [data[0]['lat'], data[0]['lon']];
         })
         .catch(function (error) {
             console.error(error);
-            return [];
         });
 }
 
@@ -129,14 +139,12 @@ function getForecast(latLon) {
         })
         .then(data => processForecastData(data))
         .catch(function (error) {
-            console.error(error);
-            return "I returned this error cause I couldnt fetch 5-day!";
+            console.error(error)
         });
 }
 
 
 function processForecastData(data) {
-    console.log(data)
     // MAIN FUNCTION //
 
     // Initializes savedData array and Index
@@ -175,7 +183,6 @@ function processForecastData(data) {
 
             } else {
                 updatesSavedData();
-                console.log(weather)
                 tempTotal = 0;
                 humTotal = 0;
                 windTotal = 0;
@@ -266,25 +273,26 @@ function createForecastCard(forecast) {
     forecastDiv.append(childDiv);
 
 
-    // Helper function to create weather data item with <span> elements
-    function createWeatherDataItem(label, value, unit) {
-        const itemP = document.createElement('p');
-        itemP.classList.add('card-text', 'weather-data-item', label.toLowerCase());
+}
 
-        const labelSpan = document.createElement('span');
-        labelSpan.classList.add('label-name');
-        labelSpan.innerText = `${label}: `;
+// Helper function to create weather data item with <span> elements
+function createWeatherDataItem(label, value, unit) {
+    const itemP = document.createElement('p');
+    itemP.classList.add('card-text', 'weather-data-item', label.toLowerCase());
 
-        const valueSpan = document.createElement('span');
-        valueSpan.classList.add(`${label.toLowerCase()}-data`);
-        valueSpan.innerText = value;
+    const labelSpan = document.createElement('span');
+    labelSpan.classList.add('label-name');
+    labelSpan.innerText = `${label}: `;
 
-        const unitSpan = document.createElement('span');
-        unitSpan.innerText = ` ${unit}`;
+    const valueSpan = document.createElement('span');
+    valueSpan.classList.add(`${label.toLowerCase()}-data`);
+    valueSpan.innerText = value;
 
-        itemP.append(labelSpan, valueSpan, unitSpan);
-        return itemP;
-    }
+    const unitSpan = document.createElement('span');
+    unitSpan.innerText = ` ${unit}`;
+
+    itemP.append(labelSpan, valueSpan, unitSpan);
+    return itemP;
 }
 
 
@@ -298,30 +306,77 @@ function createSearchHistoryBtn(city) {
     historyDiv.append(newBtn)
 
     // Remove a child if child count is more than 5
-    if (historyDiv.childElementCount > 5) {
+    if (historyDiv.childElementCount >= HISTORY_BTN_COUNT) {
         historyDiv.removeChild(historyDiv.firstChild);
+        removeFromArray(cities, city);
     }
 }
 
 
-
 function cityExists(city) {
-
     // Check if the parent div includes a child button with the text of at least 1 of the array elements
     var cityExists = Array.from(historyDiv.children).some(function (child) {
-        return child.classList.contains('btn-history') && recentSearches.includes(child.textContent.trim());
+        return child.classList.contains('btn-history') && child.textContent.trim() === city;
     });
 
     if (cityExists) {
         return true;
-    } else {
-        console.log('No button with the same text found');
-
-        // Push new city to local storage key 'recentSearches'
-        if (!recentSearches.includes(city)) {
-            recentSearches.push(city);
-            localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
-        }
-        return false;
     }
+    return false;
+}
+
+
+function updateLocalStorage(city) {
+    if (!cityExists(city)) {
+        cities.push(city);
+        localStorage.setItem('recentSearches', JSON.stringify(cities));
+    }
+}
+
+function removeFromArray(array, elementToRemove) {
+    var index = array.indexOf(elementToRemove);
+    if (index !== -1) {
+        array.splice(index, 1);
+    }
+}
+
+// Get Current Weather
+function updateCurrentWeather(latLon, city) {
+    // INITIAL CONSTS
+    const mainCard = document.querySelector('.main-card');
+    const queryURL = `https://api.openweathermap.org/data/2.5/weather?lat=${latLon[0]}&lon=${latLon[1]}&units=${UNITS}&appid=${OPEN_WEATHER_MAP_API}`;
+
+    return fetch(queryURL)
+        .then(response => { return response.json() })
+        .then(data => {
+            mainCard.innerText = '';
+
+            const weatherDataDiv = document.createElement('div');
+            weatherDataDiv.classList.add('weather-data-container');
+
+            console.log("Current Weather Data:");
+            console.log(data);
+
+            const h2El = document.createElement('h2');
+            h2El.classList.add('card-title', 'pb-3', 'city');
+        
+            const dateSpan = document.createElement('span');
+            dateSpan.classList.add('date', 'date-current');
+            dateSpan.innerText = dayjs().format('DD/MM/YYYY');
+        
+            const iconImg = document.createElement('img');
+            iconImg.classList.add('weather-icon');
+            iconImg.setAttribute('src', `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`);
+            iconImg.setAttribute('width', '60');
+            iconImg.setAttribute('style', 'display: inline');
+            
+            const tempP = createWeatherDataItem('Temp', data.main.temp, 'C') ;
+            const windP = createWeatherDataItem('Wind', data.main.temp, 'KPH');
+            const humiP = createWeatherDataItem('Humidity', data.main.temp, '%');
+            let cityName = `${city} `;
+            h2El.append(cityName, dateSpan, iconImg);
+            weatherDataDiv.append(tempP, windP, humiP);
+            mainCard.append(h2El, weatherDataDiv);
+        })
+        .catch(error => { console.error(error) })
 }
