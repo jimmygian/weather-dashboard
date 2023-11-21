@@ -4,17 +4,11 @@ dayjs.extend(window.dayjs_plugin_advancedFormat);
 
 
 // GLOBAL CONSTS
-const weatherApiKey = OPEN_WEATHER_MAP_API;
-const HISTORY_BTN_COUNT = 5;
-const LIMIT = 1;
-const UNITS = 'metric';
+const weatherApiKey = OPEN_WEATHER_MAP_API; // Insert your API KEY here
+const HISTORY_BTN_COUNT = 5;                // Change if you want more history buttons displayed
+const UNITS = 'metric';                     // Change if you want another unit (e.g. Farrheneit)
+const SEARCH_LIMIT = 1;
 const CURRENT_DATE = dayjs();
-const dateFormated = `${CURRENT_DATE.format('DD/MM/YYYY')}`
-console.log(dateFormated)
-const recentSearches = JSON.parse((localStorage.getItem('recentSearches'))) || [];
-let cities = recentSearches;
-console.log("RecentSearches key:", recentSearches);
-
 const WEATHER_ICONS = {
     Thunderstorm: '11d',
     Drizzle: '09d',
@@ -24,57 +18,133 @@ const WEATHER_ICONS = {
     Clouds: '03d',
 };
 
-// ELEMENT SELECTORS
+
+// GLOBAL ELEMENT SELECTORS
 const searchForm = document.querySelector('#search-form');
 const searchInput = document.querySelector('#search-input');
-const searchSubmit = document.querySelector('#search-button');
-const forecastDiv = document.querySelector(".forecast-div-parent");
-const historyDiv = document.querySelector("#history");
+const forecastDiv = document.querySelector('.forecast-div-parent');
+const historyDiv = document.querySelector('#history-div');
+const weatherSection = document.querySelector('.weather-info-section');
+
+// ============================== //
 
 
+// LOCAL STORAGE 
+const recentSearches = JSON.parse((localStorage.getItem('recentSearches'))) || [];
+let cities = recentSearches;
+console.log("RecentSearches key:", recentSearches);
 // Updates History Buttons based on stored cities
 for (city of recentSearches) {
     createSearchHistoryBtn(city);
 }
 
+// ============================== //
+
 
 // EVENT LISTENERS
+
 searchForm.addEventListener('submit', function (event) {
 
+    // Prevents Default
     event.preventDefault();
 
-    // Stores user selection
+    // Stores user selection if value not an empty string
     let city = searchInput.value.trim();
     if (city === '') {
         return;
     }
 
-    console.log('User typed:', city);
+    // Displays Weather Data (Current Weather and 5-Day Forecast)
     displayWeatherData(city)
-
+    weatherSection.classList.remove('d-none');
 })
 
 
-historyDiv.addEventListener('click',(event) => {
+historyDiv.addEventListener('click', (event) => {
+    // Checks which button was clicked
     const target = event.target;
 
     if (target.tagName === 'BUTTON') {
-        console.log(target);
-
-        displayWeatherData(target.innerText)
+        displayWeatherData(target.innerText);
+        weatherSection.classList.remove('d-none');
     }
 })
 
+// ============================== //
 
 
-// Gets Latitude and Longitude of city
+// MAIN FUNCTION (Gets called when user asks for another city to be displayed)
+
+function displayWeatherData(city) {
+    // Clears user input after storing value
+    searchInput.setAttribute('placeholder', "City name..");
+    searchInput.value = '';
+
+    // Clears forecastDiv
+    while (forecastDiv.firstChild) {
+        forecastDiv.removeChild(forecastDiv.firstChild);
+    }
+
+
+
+    /* EXPLANATION OF THE FOLLOWING FUNCTIONS (In call order):
+    getLatLon(city): Given a string of a city name, it returns co-ordinates in an array [lat, lon]
+    getForecast(latLon): Given an array then holds lat/lon, it returns an arr of 5 objects, each of them representing 1/5 day of the 5-day forecast
+    createForecastCard(item): Given an object of required data, it creates a forecast card and appends it to the forecast parent Div
+    updateLocalStorage(city): It updates the local storage, if city is not already included in the "cities" array
+    cityBtnExists(city): Checks if a history-button with the specified 'city' value exists, returns a bool
+    createSearchHistoryBtn(city): Creates a history-button, if it doesn't already exist
+    updateCurrentWeather(latLon, city): Given a latLon arr and a city name, it creates a main card and updates its values
+    */
+
+    // CREATES 5-DAY FORECAST CARDS
+
+    getLatLon(city)
+        .then(latLon => getForecast(latLon))
+        .catch(error => { console.error(error) })
+        .then(data => {
+            // Create Forecast Card for each data item
+            for (item of data) {
+                createForecastCard(item);
+            }
+
+            // Update Local Storage with new city name
+            updateLocalStorage(city);
+
+            // If City is not stored in local storage, create History Button
+            if (!cityBtnExists(city)) {
+                createSearchHistoryBtn(city);
+            }
+            // Catch any errors that may occur in the process
+        }).catch(error => {
+            console.error(error);
+            searchInput.value = '';
+        });
+
+    // CREATES MAIN CARD
+
+    getLatLon(city)
+        .then(latLon => updateCurrentWeather(latLon, city))
+        .catch(error => {
+            console.error(error)
+        });
+
+}
+
+
+// ============================== //
+
+
+// REST OF THE FUNCTIONS
+
+
+// Gets Latitude and Longitude of city, returns a promise arr [lat, lon]
 function getLatLon(city) {
 
-    // Call API
-    let locationURL = `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=${LIMIT}&appid=${weatherApiKey}`;
+    // Constructs API URL
+    let locationURL = `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=${SEARCH_LIMIT}&appid=${weatherApiKey}`;
 
-
-    // Return a promise using fetch
+    // Returns a Promise (using fetch)
     return fetch(locationURL)
         .then(function (response) {
 
@@ -88,6 +158,7 @@ function getLatLon(city) {
         .then(function (data) {
             return [data[0]['lat'], data[0]['lon']];
         })
+        // NOTE: [Needs more research] Not sure if .catch should be called here or not
         .catch(function (error) {
             console.error(error);
         });
@@ -115,7 +186,6 @@ function getForecast(latLon) {
 
 
 function processForecastData(data) {
-    // MAIN FUNCTION //
 
     // Initializes savedData array and Index
     let savedData = [];
@@ -123,43 +193,68 @@ function processForecastData(data) {
 
     // Initializes variables that will calculate the averages
     let tempTotal = 0, humTotal = 0, windTotal = 0, hourCount = 0;
-    let savedDay = '';
     let weather = {};
 
-    // Loops through each item of the data.list
-    for (const item of data.list) {
-        const parsedDate = dayjs(item.dt_txt, { format: "YYYY-MM-DD HH:mm:ss" });
+    // This string gets updated each time "parsedDate" shows a new day
+    let savedDay = ''; 
 
+    /*
+    This API returns an array of objects. Each element of the array hold weather data 
+    from the day the request was called and every 3 hours, until it reaches 5-days.
+    E.g. if the request happened 2023-11-20 17:23:14, we will get back 39 elements:
+    data[0] === Weather data for 2023-11-20 18:00:00
+    data[1] === Weather data for 2023-11-20 21:00:00
+    data[2] === Weather data for 2023-11-21 00:00:00
+    data[2] === Weather data for 2023-11-21 03:00:00
+    data[2] === Weather data for 2023-11-21 06:00:00 etc..
+    */
+
+    // Loops through each weatherData of the data.list
+    for (const weatherData of data.list) {
+        // Parses the weatherData's date and time
+        const parsedDate = dayjs(weatherData.dt_txt, { format: "YYYY-MM-DD HH:mm:ss" });
+
+        // Ensures that we are getting the data starting in the next day and not the current one
         if (CURRENT_DATE.day() !== parsedDate.day()) {
+            
+            // Updates the value of savedDay 
             if (savedDay === '') {
                 savedDay = parsedDate.format('dddd');
                 handleNewDay(parsedDate);
             }
 
+            // If the day of the weatherData is still the same, it keeps adding to the sum
             if (savedDay === parsedDate.format('dddd')) {
-                tempTotal += item.main.temp;
-                humTotal += item.main.humidity;
-                windTotal += item.wind.speed;
+                tempTotal += weatherData.main.temp;
+                humTotal += weatherData.main.humidity;
+                windTotal += weatherData.wind.speed;
                 hourCount++;
 
-                // Check if the key exists
-                if (weather.hasOwnProperty(item.weather[0].main)) {
+                // Check if the key exists 
+                if (weather.hasOwnProperty(weatherData.weather[0].main)) {
                     // Key exists, increment its value
-                    weather[item.weather[0].main] += 1;
+                    weather[weatherData.weather[0].main] += 1;
                 } else {
                     // Key doesn't exist, initialize it with a value of 1
-                    weather[item.weather[0].main] = 1;
+                    weather[weatherData.weather[0].main] = 1;
                 }
 
             } else {
+                // Update savedData array with new object element
                 updatesSavedData();
+
+                // Then, restore all values to starting point, so you can repeat process for the next day
                 tempTotal = 0;
                 humTotal = 0;
                 windTotal = 0;
                 hourCount = 0;
                 weather = {};
+
+                // Update the savedDay and increment savedDataIndex
                 savedDay = parsedDate.format('dddd');
                 savedDataIndex++;
+
+                // Push a new object element to the array
                 handleNewDay(parsedDate);
 
             }
@@ -216,11 +311,18 @@ function processForecastData(data) {
 }
 
 
+// ============================== //
 
 // CREATING ELEMENTS //
 
 // 1. Forecast Card
 function createForecastCard(forecast) {
+    // // Constract Section Title
+    // // <h4 class="pt-4">5-Day Forecast:</h4>
+    // const titleEl = document.createElement('h4');
+    // titleEl.classList.add('pt-4')
+    // titleEl.innerText = '5-Day Forecast:'; 
+
     const forecastDiv = document.querySelector(".forecast-div-parent");
 
     const childDiv = document.createElement('div');
@@ -283,13 +385,13 @@ function createSearchHistoryBtn(city) {
 }
 
 
-function cityExists(city) {
+function cityBtnExists(city) {
     // Check if the parent div includes a child button with the text of at least 1 of the array elements
-    var cityExists = Array.from(historyDiv.children).some(function (child) {
+    var cityBtnExists = Array.from(historyDiv.children).some(function (child) {
         return child.classList.contains('btn-history') && child.textContent.trim() === city;
     });
 
-    if (cityExists) {
+    if (cityBtnExists) {
         return true;
     }
     return false;
@@ -297,7 +399,7 @@ function cityExists(city) {
 
 
 function updateLocalStorage(city) {
-    if (!cityExists(city)) {
+    if (!cityBtnExists(city)) {
         cities.push(city);
         localStorage.setItem('recentSearches', JSON.stringify(cities));
     }
@@ -329,18 +431,18 @@ function updateCurrentWeather(latLon, city) {
 
             const h2El = document.createElement('h2');
             h2El.classList.add('card-title', 'pb-3', 'city');
-        
+
             const dateSpan = document.createElement('span');
             dateSpan.classList.add('date', 'date-current');
             dateSpan.innerText = dayjs().format('DD/MM/YYYY');
-        
+
             const iconImg = document.createElement('img');
             iconImg.classList.add('weather-icon');
             iconImg.setAttribute('src', `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`);
             iconImg.setAttribute('width', '60');
             iconImg.setAttribute('style', 'display: inline');
-            
-            const tempP = createWeatherDataItem('Temp', data.main.temp, 'C') ;
+
+            const tempP = createWeatherDataItem('Temp', data.main.temp, 'C');
             const windP = createWeatherDataItem('Wind', data.main.temp, 'KPH');
             const humiP = createWeatherDataItem('Humidity', data.main.temp, '%');
             let cityName = `${city} `;
@@ -352,49 +454,3 @@ function updateCurrentWeather(latLon, city) {
 }
 
 
-function displayWeatherData(city) {
-        // Clears user input after storing value
-        searchInput.setAttribute('placeholder', "City name..");
-        searchInput.value = '';
-    
-        // Clears forecastDiv
-        while (forecastDiv.firstChild) {
-            forecastDiv.removeChild(forecastDiv.firstChild);
-        }
-    
-        // CREATES BUTTONS
-    
-        /*
-              <button class="btn btn-secondary search-button w-100 mt-3 py-1" type="submit" id="search-button"
-                aria-label="submit search">
-                Paris
-              </button>
-    
-        */
-    
-        // CREATES 5-DAY FORECAST CARDS
-        getLatLon(city)
-            .then(latLon => getForecast(latLon))
-            .catch(error => { console.error(error) })
-            .then(data => {
-    
-                for (item of data) {
-                    createForecastCard(item);
-                }
-                updateLocalStorage(city);
-                if (!cityExists(city)) {
-                    createSearchHistoryBtn(city);
-                }
-            }).catch(error => {
-                console.error(error);
-                searchInput.value = '';
-            });
-    
-        // CREATES MAIN CARD
-        getLatLon(city)
-            .then(latLon => updateCurrentWeather(latLon, city))
-            .catch(error => {
-                console.error(error)
-            });
-    
-}
