@@ -80,14 +80,8 @@ function displayWeatherData(city) {
     searchInput.setAttribute('placeholder', "City name..");
     searchInput.value = '';
 
-    // Clears forecastDiv
-    while (forecastDiv.firstChild) {
-        forecastDiv.removeChild(forecastDiv.firstChild);
-    }
-
-
-
     /* EXPLANATION OF THE FOLLOWING FUNCTIONS (In call order):
+
     getLatLon(city): Given a string of a city name, it returns co-ordinates in an array [lat, lon]
     getForecast(latLon): Given an array then holds lat/lon, it returns an arr of 5 objects, each of them representing 1/5 day of the 5-day forecast
     createForecastCard(item): Given an object of required data, it creates a forecast card and appends it to the forecast parent Div
@@ -95,16 +89,28 @@ function displayWeatherData(city) {
     cityBtnExists(city): Checks if a history-button with the specified 'city' value exists, returns a bool
     createSearchHistoryBtn(city): Creates a history-button, if it doesn't already exist
     updateCurrentWeather(latLon, city): Given a latLon arr and a city name, it creates a main card and updates its values
+    
+    The way the following works is that getLanLon(city), getForecast(city), and updateCurrentWeather(latLon, city)
+    return the result of the whole fetch() function. Since fetch() returns a promise, these functions
+    also return a Promise. This is why they can be chained together below.
     */
 
-    // CREATES 5-DAY FORECAST CARDS
 
-    getLatLon(city)
-        .then(latLon => getForecast(latLon))
-        .catch(error => { console.error(error) })
-        .then(data => {
+    // Get latitude and longitude once
+    const latLonPromise = getLatLon(city);
+
+    // Call other functions using the latLonPromise
+    latLonPromise
+        .then(latLon => Promise.all([getForecast(latLon), updateCurrentWeather(latLon, city)]))
+        .then(([forecastData]) => {
+
+            // Clear forecastDiv
+            while (forecastDiv.firstChild) {
+                forecastDiv.removeChild(forecastDiv.firstChild);
+            }
+
             // Create Forecast Card for each data item
-            for (item of data) {
+            for (const item of forecastData) {
                 createForecastCard(item);
             }
 
@@ -115,27 +121,59 @@ function displayWeatherData(city) {
             if (!cityBtnExists(city)) {
                 createSearchHistoryBtn(city);
             }
-            // Catch any errors that may occur in the process
-        }).catch(error => {
-            console.error(error);
-            searchInput.value = '';
-        });
-
-    // CREATES MAIN CARD
-
-    getLatLon(city)
-        .then(latLon => updateCurrentWeather(latLon, city))
+        })
         .catch(error => {
-            console.error(error)
+            // console.error(error);
+            searchInput.value = '';
+            alert("Wrong input. Please search for the name of a city.")
         });
-
 }
 
 
 // ============================== //
 
 
-// REST OF THE FUNCTIONS
+// fetch() FUNCTIONS
+
+// Gets Current Weather
+function updateCurrentWeather(latLon, city) {
+    // INITIAL CONSTS
+    const mainCard = document.querySelector('.main-card');
+    const queryURL = `https://api.openweathermap.org/data/2.5/weather?lat=${latLon[0]}&lon=${latLon[1]}&units=${UNITS}&appid=${OPEN_WEATHER_MAP_API}`;
+
+    return fetch(queryURL)
+        .then(response => { return response.json() })
+        .then(data => {
+            mainCard.innerText = '';
+
+            const weatherDataDiv = document.createElement('div');
+            weatherDataDiv.classList.add('weather-data-container');
+
+            const h2El = document.createElement('h2');
+            h2El.classList.add('card-title', 'pb-3', 'city');
+
+            const dateSpan = document.createElement('span');
+            dateSpan.classList.add('date', 'date-current');
+            dateSpan.innerText = dayjs().format('DD/MM/YYYY');
+
+            const iconImg = document.createElement('img');
+            iconImg.classList.add('weather-icon');
+            iconImg.setAttribute('src', `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`);
+            iconImg.setAttribute('width', '60');
+            iconImg.setAttribute('style', 'display: inline');
+
+            const tempP = createWeatherDataItem('Temp', data.main.temp, 'C');
+            const windP = createWeatherDataItem('Wind', data.main.temp, 'KPH');
+            const humiP = createWeatherDataItem('Humidity', data.main.temp, '%');
+            let cityName = `${city} `;
+            h2El.append(cityName, dateSpan, iconImg);
+            weatherDataDiv.append(tempP, windP, humiP);
+            mainCard.append(h2El, weatherDataDiv);
+        })
+        .catch(error => { console.error(error) })
+}
+
+
 
 
 // Gets Latitude and Longitude of city, returns a promise arr [lat, lon]
@@ -158,10 +196,6 @@ function getLatLon(city) {
         .then(function (data) {
             return [data[0]['lat'], data[0]['lon']];
         })
-        // NOTE: [Needs more research] Not sure if .catch should be called here or not
-        .catch(function (error) {
-            console.error(error);
-        });
 }
 
 
@@ -179,11 +213,12 @@ function getForecast(latLon) {
             }
         })
         .then(data => processForecastData(data))
-        .catch(function (error) {
-            console.error(error)
-        });
 }
 
+
+// ============================== //
+
+// OTHER FUNCTIONS
 
 function processForecastData(data) {
 
@@ -196,7 +231,7 @@ function processForecastData(data) {
     let weather = {};
 
     // This string gets updated each time "parsedDate" shows a new day
-    let savedDay = ''; 
+    let savedDay = '';
 
     /*
     This API returns an array of objects. Each element of the array hold weather data 
@@ -216,7 +251,7 @@ function processForecastData(data) {
 
         // Ensures that we are getting the data starting in the next day and not the current one
         if (CURRENT_DATE.day() !== parsedDate.day()) {
-            
+
             // Updates the value of savedDay 
             if (savedDay === '') {
                 savedDay = parsedDate.format('dddd');
@@ -317,11 +352,6 @@ function processForecastData(data) {
 
 // 1. Forecast Card
 function createForecastCard(forecast) {
-    // // Constract Section Title
-    // // <h4 class="pt-4">5-Day Forecast:</h4>
-    // const titleEl = document.createElement('h4');
-    // titleEl.classList.add('pt-4')
-    // titleEl.innerText = '5-Day Forecast:'; 
 
     const forecastDiv = document.querySelector(".forecast-div-parent");
 
@@ -415,42 +445,5 @@ function removeFromArray(array, elementToRemove) {
     }
 }
 
-// Get Current Weather
-function updateCurrentWeather(latLon, city) {
-    // INITIAL CONSTS
-    const mainCard = document.querySelector('.main-card');
-    const queryURL = `https://api.openweathermap.org/data/2.5/weather?lat=${latLon[0]}&lon=${latLon[1]}&units=${UNITS}&appid=${OPEN_WEATHER_MAP_API}`;
-
-    return fetch(queryURL)
-        .then(response => { return response.json() })
-        .then(data => {
-            mainCard.innerText = '';
-
-            const weatherDataDiv = document.createElement('div');
-            weatherDataDiv.classList.add('weather-data-container');
-
-            const h2El = document.createElement('h2');
-            h2El.classList.add('card-title', 'pb-3', 'city');
-
-            const dateSpan = document.createElement('span');
-            dateSpan.classList.add('date', 'date-current');
-            dateSpan.innerText = dayjs().format('DD/MM/YYYY');
-
-            const iconImg = document.createElement('img');
-            iconImg.classList.add('weather-icon');
-            iconImg.setAttribute('src', `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`);
-            iconImg.setAttribute('width', '60');
-            iconImg.setAttribute('style', 'display: inline');
-
-            const tempP = createWeatherDataItem('Temp', data.main.temp, 'C');
-            const windP = createWeatherDataItem('Wind', data.main.temp, 'KPH');
-            const humiP = createWeatherDataItem('Humidity', data.main.temp, '%');
-            let cityName = `${city} `;
-            h2El.append(cityName, dateSpan, iconImg);
-            weatherDataDiv.append(tempP, windP, humiP);
-            mainCard.append(h2El, weatherDataDiv);
-        })
-        .catch(error => { console.error(error) })
-}
 
 
