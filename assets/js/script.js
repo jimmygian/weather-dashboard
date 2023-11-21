@@ -50,52 +50,22 @@ searchForm.addEventListener('submit', function (event) {
     }
 
     console.log('User typed:', city);
-
-    // Clears user input after storing value
-    searchInput.setAttribute('placeholder', "City name..");
-    searchInput.value = '';
-
-    // Clears forecastDiv
-    while (forecastDiv.firstChild) {
-        forecastDiv.removeChild(forecastDiv.firstChild);
-    }
-
-    // CREATES BUTTONS
-
-    /*
-          <button class="btn btn-secondary search-button w-100 mt-3 py-1" type="submit" id="search-button"
-            aria-label="submit search">
-            Paris
-          </button>
-
-    */
-
-    // CREATES 5-DAY FORECAST CARDS
-    getLatLon(city)
-        .then(latLon => getForecast(latLon))
-        .catch(error => { console.error(error) })
-        .then(data => {
-
-            for (item of data) {
-                createForecastCard(item);
-            }
-            updateLocalStorage(city);
-            if (!cityExists(city)) {
-                createSearchHistoryBtn(city);
-            }
-        }).catch(error => {
-            console.error(error);
-            searchInput.value = '';
-        });
-
-    // CREATES MAIN CARD
-    getLatLon(city)
-        .then(latLon => updateCurrentWeather(latLon, city))
-        .catch(error => {
-            console.error(error)
-        });
+    displayWeatherData(city)
 
 })
+
+
+historyDiv.addEventListener('click',(event) => {
+    const target = event.target;
+
+    if (target.tagName === 'BUTTON') {
+        console.log(target);
+
+        displayWeatherData(target.innerText)
+    }
+})
+
+
 
 // Gets Latitude and Longitude of city
 function getLatLon(city) {
@@ -379,4 +349,52 @@ function updateCurrentWeather(latLon, city) {
             mainCard.append(h2El, weatherDataDiv);
         })
         .catch(error => { console.error(error) })
+}
+
+
+function displayWeatherData(city) {
+        // Clears user input after storing value
+        searchInput.setAttribute('placeholder', "City name..");
+        searchInput.value = '';
+    
+        // Clears forecastDiv
+        while (forecastDiv.firstChild) {
+            forecastDiv.removeChild(forecastDiv.firstChild);
+        }
+    
+        // CREATES BUTTONS
+    
+        /*
+              <button class="btn btn-secondary search-button w-100 mt-3 py-1" type="submit" id="search-button"
+                aria-label="submit search">
+                Paris
+              </button>
+    
+        */
+    
+        // CREATES 5-DAY FORECAST CARDS
+        getLatLon(city)
+            .then(latLon => getForecast(latLon))
+            .catch(error => { console.error(error) })
+            .then(data => {
+    
+                for (item of data) {
+                    createForecastCard(item);
+                }
+                updateLocalStorage(city);
+                if (!cityExists(city)) {
+                    createSearchHistoryBtn(city);
+                }
+            }).catch(error => {
+                console.error(error);
+                searchInput.value = '';
+            });
+    
+        // CREATES MAIN CARD
+        getLatLon(city)
+            .then(latLon => updateCurrentWeather(latLon, city))
+            .catch(error => {
+                console.error(error)
+            });
+    
 }
