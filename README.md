@@ -6,12 +6,13 @@ This repository contains a front-end web application that serves as a weather da
 
 
 ## Usage
-To explore the Weather Dashboard and check real-time weather information for your desired city, you can: 
+To explore the Weather Dashboard and check real-time weather information for your desired city, you need a free API key from https://openweathermap.org/.  
 
-- Clone this repository and update the API key on script.js. To get an open weather API key visit this link.
+Once you gain access to an API key, you can: 
 
-- Access the deployed application [here](https://jimmygian.github.io/weather-dashboard/). Note that the search won't run without the API key.
+- Clone this repository and update the API key on script.js.
 
+- Access the deployed application [here](https://jimmygian.github.io/weather-dashboard/) and paste the API key when prompted.
 
 ## Motivations
 
