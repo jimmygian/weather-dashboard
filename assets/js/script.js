@@ -3,10 +3,37 @@ dayjs.extend(window.dayjs_plugin_calendar);
 dayjs.extend(window.dayjs_plugin_advancedFormat);
 
 
+// ============================== //
+
+// ** STORE YOUR API KEY ** //
+
+/* 
+As instructed in our class, the API keys should not be stored, and a .gitignore file should be
+used to exclude our api.js file from the commits.
+
+A valid (free) API key from 'https://openweathermap.org' needs to be inserted in "weatherApiKey" 
+variable for the program to run correctly.
+
+Both of the below actions should work:
+1) Clone this repository and:
+-   Create a ./assets/js/api.js JavaScript file (that is already connected to the index.html) 
+    and include a const OPEN_WEATHER_MAP_API that stores your key.
+-   Change the code snipped below and assign your key string to "weatherApiKey"
+
+2) In the deployed web page (https://jimmygian.github.io/weather-dashboard), 
+   paste your API code when prompted. Note that you will be asked every time the page refreshes. 
+   Everything else should work as expected.
+
+*/
+
+let weatherApiKey = typeof OPEN_WEATHER_MAP_API !== 'undefined' ? OPEN_WEATHER_MAP_API : '';
+
+// ============================== //
+
+
 // GLOBAL CONSTS
-const weatherApiKey = OPEN_WEATHER_MAP_API; // Insert your API KEY here
 const HISTORY_BTN_COUNT = 5;                // Change if you want more history buttons displayed
-const UNITS = 'metric';                     // Change if you want another unit (e.g. Farrheneit)
+const UNITS = 'metric';                     // Change if you want another unit (e.g. fahrenheit)
 const SEARCH_LIMIT = 1;
 const CURRENT_DATE = dayjs();
 const WEATHER_ICONS = {
@@ -48,6 +75,9 @@ searchForm.addEventListener('submit', function (event) {
     // Prevents Default
     event.preventDefault();
 
+    // Prompt for API
+    promptForAPI();
+
     // Stores user selection if value not an empty string
     let city = searchInput.value.trim();
     if (city === '') {
@@ -56,13 +86,15 @@ searchForm.addEventListener('submit', function (event) {
 
     // Displays Weather Data (Current Weather and 5-Day Forecast)
     displayWeatherData(city)
-    weatherSection.classList.remove('d-none');
 })
 
 
 historyDiv.addEventListener('click', (event) => {
     // Checks which button was clicked
     const target = event.target;
+
+    // Prompt for API
+    promptForAPI();
 
     if (target.tagName === 'BUTTON') {
         displayWeatherData(target.innerText);
@@ -73,7 +105,7 @@ historyDiv.addEventListener('click', (event) => {
 // ============================== //
 
 
-// MAIN FUNCTION (Gets called when user asks for another city to be displayed)
+// MAIN FUNCTION (Gets called when user asks for another city to be displayed) //
 
 function displayWeatherData(city) {
     // Clears user input after storing value
@@ -121,11 +153,15 @@ function displayWeatherData(city) {
             if (!cityBtnExists(city)) {
                 createSearchHistoryBtn(city);
             }
+            weatherSection.classList.remove('d-none');
         })
         .catch(error => {
             // console.error(error);
             searchInput.value = '';
-            alert("Wrong input. Please search for the name of a city.")
+            alert("Wrong City Name or API key. Please try again.")
+
+            // Reloads the current page (so that user can be prompted again for an API key)
+            location.reload();
         });
 }
 
@@ -133,13 +169,13 @@ function displayWeatherData(city) {
 // ============================== //
 
 
-// fetch() FUNCTIONS
+// fetch() FUNCTIONS //
 
 // Gets Current Weather
 function updateCurrentWeather(latLon, city) {
     // INITIAL CONSTS
     const mainCard = document.querySelector('.main-card');
-    const queryURL = `https://api.openweathermap.org/data/2.5/weather?lat=${latLon[0]}&lon=${latLon[1]}&units=${UNITS}&appid=${OPEN_WEATHER_MAP_API}`;
+    const queryURL = `https://api.openweathermap.org/data/2.5/weather?lat=${latLon[0]}&lon=${latLon[1]}&units=${UNITS}&appid=${weatherApiKey}`;
 
     return fetch(queryURL)
         .then(response => { return response.json() })
@@ -345,8 +381,24 @@ function processForecastData(data) {
     }
 }
 
+function promptForAPI() {
+    if (weatherApiKey === '' || weatherApiKey === null) {
+        const userInput = prompt("To use this weather app, please enter an API KEY from https://openweathermap.org/");
+
+        // Check if the user clicked "Cancel" or entered an empty string
+        if (userInput === null || userInput.trim() === '') {
+            // Handle the case where the user canceled the prompt or entered an empty string
+            console.log("User canceled the prompt or entered an empty API key.");
+        } else {
+            // User entered a valid API key
+            weatherApiKey = userInput.trim();
+            console.log("API Key entered:", weatherApiKey);
+        }
+    }
+}
 
 // ============================== //
+
 
 // CREATING ELEMENTS //
 
