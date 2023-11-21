@@ -216,7 +216,7 @@ function updateCurrentWeather(latLon) {
 function getLatLon(city) {
 
     // Constructs API URL
-    let locationURL = `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=${SEARCH_LIMIT}&appid=${weatherApiKey}`;
+    let locationURL = `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=${SEARCH_LIMIT}&appid=${weatherApiKey}`;
 
     // Returns a Promise (using fetch)
     return fetch(locationURL)
