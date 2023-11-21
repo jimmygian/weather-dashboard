@@ -52,7 +52,7 @@ Through the development of the Weather Dashboard, several key insights and skill
 
 ## Credits
 
-This project was developed by [Your Name]. The GitHub repository is available at [Weather Dashboard Repository](https://github.com/jimmygian/weather-dashboard/) [replace with your repository link].
+This project was developed by Dimitris. The GitHub repository is available at [Weather Dashboard Repository](https://github.com/jimmygian/weather-dashboard/) [replace with your repository link].
 
 ## License
 
