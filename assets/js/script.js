@@ -133,8 +133,8 @@ function displayWeatherData(city) {
 
     // Call other functions using the latLonPromise
     latLonPromise
-        .then(latLon => Promise.all([getForecast(latLon), updateCurrentWeather(latLon, city)]))
-        .then(([forecastData]) => {
+        .then(latLon => Promise.all([getForecast(latLon), updateCurrentWeather(latLon)]))
+        .then(([forecastData, cityName]) => {
 
             // Clear forecastDiv
             while (forecastDiv.firstChild) {
@@ -147,11 +147,11 @@ function displayWeatherData(city) {
             }
 
             // Update Local Storage with new city name
-            updateLocalStorage(city);
+            updateLocalStorage(cityName);
 
             // If City is not stored in local storage, create History Button
-            if (!cityBtnExists(city)) {
-                createSearchHistoryBtn(city);
+            if (!cityBtnExists(cityName)) {
+                createSearchHistoryBtn(cityName);
             }
             weatherSection.classList.remove('d-none');
         })
@@ -172,7 +172,7 @@ function displayWeatherData(city) {
 // fetch() FUNCTIONS //
 
 // Gets Current Weather
-function updateCurrentWeather(latLon, city) {
+function updateCurrentWeather(latLon) {
     // INITIAL CONSTS
     const mainCard = document.querySelector('.main-card');
     const queryURL = `https://api.openweathermap.org/data/2.5/weather?lat=${latLon[0]}&lon=${latLon[1]}&units=${UNITS}&appid=${weatherApiKey}`;
@@ -198,21 +198,21 @@ function updateCurrentWeather(latLon, city) {
             iconImg.setAttribute('width', '60');
             iconImg.setAttribute('style', 'display: inline');
 
-            const tempP = createWeatherDataItem('Temp', data.main.temp, 'C');
+            const tempP = createWeatherDataItem('Temp', data.main.temp, '°C');
             const windP = createWeatherDataItem('Wind', data.main.temp, 'KPH');
             const humiP = createWeatherDataItem('Humidity', data.main.temp, '%');
-            let cityName = `${city} `;
+            let cityName = `${latLon[2]}, ${latLon[3]} `;
             h2El.append(cityName, dateSpan, iconImg);
             weatherDataDiv.append(tempP, windP, humiP);
             mainCard.append(h2El, weatherDataDiv);
+
+            return latLon[2];
         })
         .catch(error => { console.error(error) })
 }
 
 
-
-
-// Gets Latitude and Longitude of city, returns a promise arr [lat, lon]
+// Gets Latitude and Longitude of city, returns a promise arr [lat, lon, city-name, state]
 function getLatLon(city) {
 
     // Constructs API URL
@@ -230,7 +230,7 @@ function getLatLon(city) {
             }
         })
         .then(function (data) {
-            return [data[0]['lat'], data[0]['lon']];
+            return [data[0]['lat'], data[0]['lon'], data[0]['name'], data[0]['state']];
         })
 }
 
@@ -419,7 +419,7 @@ function createForecastCard(forecast) {
     iconImg.setAttribute('src', `https://openweathermap.org/img/wn/${forecast.icon}@2x.png`);
     iconImg.setAttribute('width', '40');
 
-    const tempP = createWeatherDataItem('Temp', forecast.avgTemp, 'C');
+    const tempP = createWeatherDataItem('Temp', forecast.avgTemp, '°C');
     const windP = createWeatherDataItem('Wind', forecast.avgWind, 'KPH');
     const humP = createWeatherDataItem('Humidity', forecast.avgHum, '%');
 
