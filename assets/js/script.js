@@ -26,6 +26,7 @@ Both of the below actions should work:
 
 */
 
+
 let weatherApiKey = typeof OPEN_WEATHER_MAP_API !== 'undefined' ? OPEN_WEATHER_MAP_API : '';
 
 // ============================== //
