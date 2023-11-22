@@ -266,6 +266,10 @@ function processForecastData(data) {
     let tempTotal = 0, humTotal = 0, windTotal = 0, hourCount = 0;
     let weather = {};
 
+    // Initializes variables that will calculate the averages
+    let tempMin = NaN;
+    let tempMax = NaN;
+
     // This string gets updated each time "parsedDate" shows a new day
     let savedDay = '';
 
@@ -282,6 +286,7 @@ function processForecastData(data) {
 
     // Loops through each weatherData of the data.list
     for (const weatherData of data.list) {
+        console.log(weatherData);
         // Parses the weatherData's date and time
         const parsedDate = dayjs(weatherData.dt_txt, { format: "YYYY-MM-DD HH:mm:ss" });
 
@@ -300,6 +305,17 @@ function processForecastData(data) {
                 humTotal += weatherData.main.humidity;
                 windTotal += weatherData.wind.speed;
                 hourCount++;
+                console.log(tempMin, tempMax);
+                if (isNaN(tempMin) || isNaN(tempMax)) {
+                    tempMin = weatherData.main.temp;
+                    tempMax = weatherData.main.temp;
+                } 
+                if (tempMin > weatherData.main.temp) {
+                    tempMin = weatherData.main.temp;
+                }
+                if (tempMax < weatherData.main.temp) {
+                    tempMax = weatherData.main.temp;
+                }
 
                 // Check if the key exists 
                 if (weather.hasOwnProperty(weatherData.weather[0].main)) {
@@ -313,18 +329,23 @@ function processForecastData(data) {
             } else {
                 // Update savedData array with new object element
                 updatesSavedData();
+                
+                                console.log(savedDay)
+                                console.log(tempMin)
+                                console.log(tempMax)
 
                 // Then, restore all values to starting point, so you can repeat process for the next day
                 tempTotal = 0;
                 humTotal = 0;
                 windTotal = 0;
                 hourCount = 0;
+                tempMin = NaN;
+                tempMax = NaN;
                 weather = {};
 
                 // Update the savedDay and increment savedDataIndex
                 savedDay = parsedDate.format('dddd');
                 savedDataIndex++;
-
                 // Push a new object element to the array
                 handleNewDay(parsedDate);
 
@@ -332,6 +353,7 @@ function processForecastData(data) {
         }
     }
     updatesSavedData();
+    console.log(savedData);
     return savedData;
 
 
@@ -359,6 +381,8 @@ function processForecastData(data) {
         savedData[savedDataIndex]['avgHum'] = Math.round(calculateAverage(humTotal, hourCount));
         savedData[savedDataIndex]['avgWind'] = calculateAverage(windTotal, hourCount);
         savedData[savedDataIndex]['icon'] = calculateIcon(weather);
+        savedData[savedDataIndex]['tempMin'] = Math.round(tempMin);
+        savedData[savedDataIndex]['tempMax'] = Math.round(tempMax);
     }
 
 
@@ -419,9 +443,9 @@ function createForecastCard(forecast) {
     iconImg.setAttribute('src', `https://openweathermap.org/img/wn/${forecast.icon}@2x.png`);
     iconImg.setAttribute('width', '40');
 
-    const tempP = createWeatherDataItem('Temp', forecast.avgTemp, '°C');
-    const windP = createWeatherDataItem('Wind', forecast.avgWind, 'KPH');
-    const humP = createWeatherDataItem('Humidity', forecast.avgHum, '%');
+    const tempP = createWeatherDataItem('Temp', [forecast.tempMin, forecast.tempMax], '°C');
+    const windP = createWeatherDataItem('Wind', [forecast.avgWind], 'KPH');
+    const humP = createWeatherDataItem('Humidity', [forecast.avgHum], '%');
 
     childDiv.append(dateH5, iconImg, tempP, windP, humP);
     forecastDiv.append(childDiv);
@@ -440,7 +464,11 @@ function createWeatherDataItem(label, value, unit) {
 
     const valueSpan = document.createElement('span');
     valueSpan.classList.add(`${label.toLowerCase()}-data`);
-    valueSpan.innerText = value;
+    if (value.length > 1) {
+        valueSpan.innerText = `${value[0]} - ${value[1]}`;
+    } else {
+        valueSpan.innerText = `${value[0]}`;
+    }
 
     const unitSpan = document.createElement('span');
     unitSpan.innerText = ` ${unit}`;
