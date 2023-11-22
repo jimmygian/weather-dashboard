@@ -27,7 +27,7 @@ Both of the below actions should work:
 */
 
 let weatherApiKey = typeof OPEN_WEATHER_MAP_API !== 'undefined' ? OPEN_WEATHER_MAP_API : '';
-
+let newbranch;
 // ============================== //
 
 
@@ -198,9 +198,9 @@ function updateCurrentWeather(latLon) {
             iconImg.setAttribute('width', '60');
             iconImg.setAttribute('style', 'display: inline');
 
-            const tempP = createWeatherDataItem('Temp', data.main.temp, '°C');
-            const windP = createWeatherDataItem('Wind', data.wind.speed, 'KPH');
-            const humiP = createWeatherDataItem('Humidity', data.main.humidity, '%');
+            const tempP = createWeatherDataItem('Temp', [data.main.temp], '°C');
+            const windP = createWeatherDataItem('Wind', [data.wind.speed], 'KPH');
+            const humiP = createWeatherDataItem('Humidity', [data.main.humidity], '%');
             let cityName = `${latLon[2]}, ${latLon[3]} `;
             h2El.append(cityName, dateSpan, iconImg);
             weatherDataDiv.append(tempP, windP, humiP);
@@ -266,6 +266,11 @@ function processForecastData(data) {
     let tempTotal = 0, humTotal = 0, windTotal = 0, hourCount = 0;
     let weather = {};
 
+    // Initializes variables that will calculate the averages
+    let tempMinMax = [NaN, NaN];
+    let humMinMax = [NaN, NaN];
+    let windMinMax = [NaN, NaN];
+
     // This string gets updated each time "parsedDate" shows a new day
     let savedDay = '';
 
@@ -282,6 +287,7 @@ function processForecastData(data) {
 
     // Loops through each weatherData of the data.list
     for (const weatherData of data.list) {
+
         // Parses the weatherData's date and time
         const parsedDate = dayjs(weatherData.dt_txt, { format: "YYYY-MM-DD HH:mm:ss" });
 
@@ -301,6 +307,11 @@ function processForecastData(data) {
                 windTotal += weatherData.wind.speed;
                 hourCount++;
 
+                // Update min and max values
+                tempMinMax = updateMinMax(tempMinMax[0], tempMinMax[1], weatherData.main.temp);
+                humMinMax = updateMinMax(humMinMax[0], humMinMax[1], weatherData.main.humidity);
+                windMinMax = updateMinMax(windMinMax[0], windMinMax[1], weatherData.wind.speed);
+
                 // Check if the key exists 
                 if (weather.hasOwnProperty(weatherData.weather[0].main)) {
                     // Key exists, increment its value
@@ -319,17 +330,21 @@ function processForecastData(data) {
                 humTotal = 0;
                 windTotal = 0;
                 hourCount = 0;
+                tempMinMax = [NaN, NaN];
+                humMinMax = [NaN, NaN];
+                windMinMax = [NaN, NaN];
+
                 weather = {};
 
                 // Update the savedDay and increment savedDataIndex
                 savedDay = parsedDate.format('dddd');
                 savedDataIndex++;
-
                 // Push a new object element to the array
                 handleNewDay(parsedDate);
 
             }
         }
+
     }
     updatesSavedData();
     return savedData;
@@ -337,6 +352,7 @@ function processForecastData(data) {
 
 
     // NESTED FUNCTIONS //
+
 
     // 1: Pushes a new object instance to savedData array
     function handleNewDay(parsedDate) {
@@ -355,12 +371,27 @@ function processForecastData(data) {
 
     // 3: Updates savedData array
     function updatesSavedData() {
-        savedData[savedDataIndex]['avgTemp'] = calculateAverage(tempTotal, hourCount);
-        savedData[savedDataIndex]['avgHum'] = Math.round(calculateAverage(humTotal, hourCount));
-        savedData[savedDataIndex]['avgWind'] = calculateAverage(windTotal, hourCount);
-        savedData[savedDataIndex]['icon'] = calculateIcon(weather);
-    }
 
+        savedData[savedDataIndex]['icon'] = calculateIcon(weather);
+
+        savedData[savedDataIndex]['minMax'] = {
+            temp: {
+                min: Math.round(tempMinMax[0]),
+                max: Math.round(tempMinMax[1]),
+                average: calculateAverage(tempTotal, hourCount)
+            },
+            humidity: {
+                min: Math.round(humMinMax[0]),
+                max: Math.round(humMinMax[1]),
+                average: Math.round(calculateAverage(humTotal, hourCount))
+            },
+            wind: {
+                min: Math.round(windMinMax[0]),
+                max: Math.round(windMinMax[1]),
+                average: calculateAverage(windTotal, hourCount)
+            }
+        }
+    }
 
     // 4. Calculates which icon to use
     function calculateIcon(weather) {
@@ -379,6 +410,21 @@ function processForecastData(data) {
         }
         return WEATHER_ICONS[maxKey];
     }
+
+    // 5. updates Min and Max values
+    function updateMinMax(min, max, value) {
+        if (isNaN(min) || isNaN(max)) {
+            min = value;
+            max = value;
+        }
+        if (min > value) {
+            min = value;
+        }
+        if (max < value) {
+            max = value;
+        }
+        return [min, max];
+    }
 }
 
 function promptForAPI() {
@@ -392,7 +438,6 @@ function promptForAPI() {
         } else {
             // User entered a valid API key
             weatherApiKey = userInput.trim();
-            console.log("API Key entered:", weatherApiKey);
         }
     }
 }
@@ -419,9 +464,9 @@ function createForecastCard(forecast) {
     iconImg.setAttribute('src', `https://openweathermap.org/img/wn/${forecast.icon}@2x.png`);
     iconImg.setAttribute('width', '40');
 
-    const tempP = createWeatherDataItem('Temp', forecast.avgTemp, '°C');
-    const windP = createWeatherDataItem('Wind', forecast.avgWind, 'KPH');
-    const humP = createWeatherDataItem('Humidity', forecast.avgHum, '%');
+    const tempP = createWeatherDataItem('Temp', [forecast.minMax.temp.min, forecast.minMax.temp.max], '°C');
+    const windP = createWeatherDataItem('Wind', [forecast.minMax.wind.min, forecast.minMax.wind.max], 'KPH');
+    const humP = createWeatherDataItem('Humidity', [forecast.minMax.humidity.min, forecast.minMax.humidity.max], '%');
 
     childDiv.append(dateH5, iconImg, tempP, windP, humP);
     forecastDiv.append(childDiv);
@@ -440,7 +485,11 @@ function createWeatherDataItem(label, value, unit) {
 
     const valueSpan = document.createElement('span');
     valueSpan.classList.add(`${label.toLowerCase()}-data`);
-    valueSpan.innerText = value;
+    if (value.length > 1) {
+        valueSpan.innerText = `${value[0]} to ${value[1]}`;
+    } else {
+        valueSpan.innerText = `${value[0]}`;
+    }
 
     const unitSpan = document.createElement('span');
     unitSpan.innerText = ` ${unit}`;
