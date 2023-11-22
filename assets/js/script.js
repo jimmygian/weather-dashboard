@@ -201,7 +201,14 @@ function updateCurrentWeather(latLon) {
             const tempP = createWeatherDataItem('Temp', [data.main.temp], '°C');
             const windP = createWeatherDataItem('Wind', [data.wind.speed], 'KPH');
             const humiP = createWeatherDataItem('Humidity', [data.main.humidity], '%');
-            let cityName = `${latLon[2]}, ${latLon[3]} `;
+
+            let cityName;
+            if (latLon[3] !== undefined) {
+                cityName = `${latLon[2]}, ${latLon[3]} `;
+            } else {
+                cityName = `${latLon[2]} `;
+            }
+
             h2El.append(cityName, dateSpan, iconImg);
             weatherDataDiv.append(tempP, windP, humiP);
             mainCard.append(h2El, weatherDataDiv);
