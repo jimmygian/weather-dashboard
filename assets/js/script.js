@@ -199,8 +199,8 @@ function updateCurrentWeather(latLon) {
             iconImg.setAttribute('style', 'display: inline');
 
             const tempP = createWeatherDataItem('Temp', data.main.temp, '°C');
-            const windP = createWeatherDataItem('Wind', data.main.temp, 'KPH');
-            const humiP = createWeatherDataItem('Humidity', data.main.temp, '%');
+            const windP = createWeatherDataItem('Wind', data.wind.speed, 'KPH');
+            const humiP = createWeatherDataItem('Humidity', data.main.humidity, '%');
             let cityName = `${latLon[2]}, ${latLon[3]} `;
             h2El.append(cityName, dateSpan, iconImg);
             weatherDataDiv.append(tempP, windP, humiP);
