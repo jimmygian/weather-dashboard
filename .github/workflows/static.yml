@@ -28,9 +28,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      OPEN_WEATHER_MAP_API: ${{ secrets.OPEN_WEATHER_MAP_API }}
     steps:
       - name: Read my API key
-        run: echo "My API key is ${{ secrets.OPEN_WEATHER_MAP_API }}"
+        run: echo "My API key is ${{ env.OPEN_WEATHER_MAP_API }}"
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Pages
