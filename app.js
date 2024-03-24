@@ -25,8 +25,8 @@ const app = express();
 // Make a request to the external API using your API key
 const weatherApiKey = process.env.OPEN_WEATHER_MAP_API;
 
-app.use(express.static(path.join(__dirname, "..", "public")));
-console.log(path.join(__dirname, "..", "public"))
+app.use(express.static(path.join(__dirname, "public")));
+console.log(path.join(__dirname, "public"))
 
 
 // Define a route to handle weather data requests
@@ -62,9 +62,11 @@ app.use((req, res) => {
 })
 
 
-app.listen(3000, () => {
-    console.log("App listening on port 3000");
-});
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3000;
+}
+app.listen(port);
 
 
 async function getForecast(latLon) {
