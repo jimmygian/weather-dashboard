@@ -1,0 +1,25 @@
+{
+  "name": "weather-dashboard",
+  "version": "1.0.0",
+  "description": "This repository contains a front-end web application that serves as a weather dashboard. Users can search for a city, and the application provides the current temperature, humidity, wind speed, as well as a 5-day weather forecast. The project utilizes APIs, asynchronous functions, and dynamically updates the UI to display real-time weather information.",
+  "main": "public/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server/app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "dayjs": "^1.11.10",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.1"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "keywords": [
+    "example",
+    "heroku"
+  ]
+}
