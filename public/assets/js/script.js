@@ -162,7 +162,6 @@ function createMainWeatherCard(data) {
 }
 
 
-
 // ============================== //
 
 
