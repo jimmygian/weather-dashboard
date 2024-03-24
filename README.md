@@ -1,22 +1,23 @@
 # Weather Dashboard
 
-This repository contains a front-end web application that serves as a weather dashboard. Users can search for a city, and the application provides the current temperature, humidity, wind speed, as well as a 5-day weather forecast. The project utilizes APIs, asynchronous functions, and dynamically updates the UI to display real-time weather information.
+This repository contains a full-stalk web application created using Express.js/Node/Heroku, that serves as a weather dashboard. Users can search for a city, and the application provides the current temperature, humidity, wind speed, as well as a 5-day weather forecast. The project utilizes APIs, asynchronous functions, and dynamically updates the UI to display real-time weather information.
 
 <img src="./assets/images/project-screenshot-1.png">
 
 
 ## Usage
-To explore the Weather Dashboard and check real-time weather information for your desired city, you need a free API key from https://openweathermap.org/.  
+Visit the [site]([https://jimmygian.github.io/weather-dashboard/](https://weather-dashboard-jg-1be1030d3e2d.herokuapp.com/ ). Enter the name of a city and click submit to get a 5-day forecast.
 
-Once you gain access to an API key, you can: 
+Alternatively:
+- Clone this repository and update the API key on .env with an openweathermap API key.
 
-- Clone this repository and update the API key on script.js.
-
-- Access the deployed application [here](https://jimmygian.github.io/weather-dashboard/) and paste the API key when prompted.
+- Run `npm start` to locally run the server, and visit localhost:3000.
 
 ## Motivations
 
-1. **API Integration:** The primary goal of this project was to gain hands-on experience with API integration, particularly with the OpenWeatherMap API. The application fetches weather data based on user input, demonstrating proficiency in making API requests and handling responses.
+1. **Express.js/heroku:** The primary goal of this project was to create a full-stalk app that utilizes express.js, connects front with back end, and is deployed in heroku.
+
+1. **API Integration:** The second goal of this project was to gain hands-on experience with API integration in a full-stalk application. The application fetches weather data based on user input server-side, and sends the data to the client-side, demonstrating proficiency in making API requests and handling responses.
 
 2. **Asynchronous JavaScript:** Asynchronous functions and the `fetch()` API are central to this project. The goal was to understand how to manage asynchronous operations effectively, ensuring a smooth user experience while waiting for API data.
 
