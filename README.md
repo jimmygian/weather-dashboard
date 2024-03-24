@@ -6,7 +6,7 @@ This repository contains a full-stalk web application created using Express.js/N
 
 
 ## Usage
-Visit the [site]([https://jimmygian.github.io/weather-dashboard/](https://weather-dashboard-jg-1be1030d3e2d.herokuapp.com/ ). Enter the name of a city and click submit to get a 5-day forecast.
+Visit the [Weather Dashboard](https://weather-dashboard-jg-1be1030d3e2d.herokuapp.com/) website. Enter the name of a city and click submit to get a 5-day forecast.
 
 Alternatively:
 - Clone this repository and update the API key on .env with an openweathermap API key.
@@ -62,7 +62,7 @@ This project is licensed under the MIT License, allowing you the freedom to use 
 
 ## Links
 
-- Deployed Application: [Weather Dashboard](https://jimmygian.github.io/weather-dashboard/)
+- Deployed Application: [Weather Dashboard](https://weather-dashboard-jg-1be1030d3e2d.herokuapp.com/)
 - GitHub Repository: [Weather Dashboard Repository](https://github.com/jimmygian/weather-dashboard/)
 
 
